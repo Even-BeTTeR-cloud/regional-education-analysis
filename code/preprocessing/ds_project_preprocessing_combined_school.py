@@ -5,6 +5,7 @@ School Data Preprocessing Script
 
 import pandas as pd
 import sys
+from datetime import datetime
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
         df = pd.read_excel(input_file)
         
         # 2. 필요한 컬럼만 선택
-        keep_columns = ['시도', '지역규모', '학교급', '학교명', '통합구분', '학급수', '학생수']
+        keep_columns = ['시도', '지역규모', '학교급', '학교명', '통합구분', '학급수', '학생수', '학교개교일14~']
         df = df[keep_columns].copy()
         
         # 3. 컬럼명 영문 변환
@@ -30,11 +31,17 @@ def main():
             '학교명': 'school_name',
             '통합구분': 'integration_type',
             '학급수': 'class_count',
-            '학생수': 'student_count'
+            '학생수': 'student_count',
+            '학교개교일14~': 'date_of_founding'
         }
         df.rename(columns=column_mapping, inplace=True)
         
-        # 4. 데이터 타입 변환
+        # 4. 개교일 날짜 형식 변환 (YYYYMMDD -> datetime.date)
+        df['date_of_founding'] = df['date_of_founding'].apply(
+            lambda x: datetime.strptime(str(x), '%Y%m%d').date()
+        )
+        
+        # 5. 데이터 타입 변환
         dtype_mapping = {
             'province': 'category',
             'region_size': 'category',
@@ -48,7 +55,7 @@ def main():
         for col, dtype in dtype_mapping.items():
             df[col] = df[col].astype(dtype)
         
-        # 5. 데이터 저장
+        # 6. 데이터 저장
         df.to_csv(output_csv, index=False, encoding='utf-8-sig')
         
         print("전처리 완료")
